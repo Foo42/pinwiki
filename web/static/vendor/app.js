@@ -11272,6 +11272,94 @@ Elm.Html.Attributes.make = function (_elm) {
                                         ,property: property
                                         ,attribute: attribute};
 };
+Elm.Html = Elm.Html || {};
+Elm.Html.Events = Elm.Html.Events || {};
+Elm.Html.Events.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Events = _elm.Html.Events || {};
+   if (_elm.Html.Events.values) return _elm.Html.Events.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var _op = {};
+   var keyCode = A2($Json$Decode._op[":="],
+   "keyCode",
+   $Json$Decode.$int);
+   var targetChecked = A2($Json$Decode.at,
+   _U.list(["target","checked"]),
+   $Json$Decode.bool);
+   var targetValue = A2($Json$Decode.at,
+   _U.list(["target","value"]),
+   $Json$Decode.string);
+   var defaultOptions = $VirtualDom.defaultOptions;
+   var Options = F2(function (a,b) {
+      return {stopPropagation: a,preventDefault: b};
+   });
+   var onWithOptions = $VirtualDom.onWithOptions;
+   var on = $VirtualDom.on;
+   var messageOn = F3(function (name,addr,msg) {
+      return A3(on,
+      name,
+      $Json$Decode.value,
+      function (_p0) {
+         return A2($Signal.message,addr,msg);
+      });
+   });
+   var onClick = messageOn("click");
+   var onDoubleClick = messageOn("dblclick");
+   var onMouseMove = messageOn("mousemove");
+   var onMouseDown = messageOn("mousedown");
+   var onMouseUp = messageOn("mouseup");
+   var onMouseEnter = messageOn("mouseenter");
+   var onMouseLeave = messageOn("mouseleave");
+   var onMouseOver = messageOn("mouseover");
+   var onMouseOut = messageOn("mouseout");
+   var onBlur = messageOn("blur");
+   var onFocus = messageOn("focus");
+   var onSubmit = messageOn("submit");
+   var onKey = F3(function (name,addr,handler) {
+      return A3(on,
+      name,
+      keyCode,
+      function (code) {
+         return A2($Signal.message,addr,handler(code));
+      });
+   });
+   var onKeyUp = onKey("keyup");
+   var onKeyDown = onKey("keydown");
+   var onKeyPress = onKey("keypress");
+   return _elm.Html.Events.values = {_op: _op
+                                    ,onBlur: onBlur
+                                    ,onFocus: onFocus
+                                    ,onSubmit: onSubmit
+                                    ,onKeyUp: onKeyUp
+                                    ,onKeyDown: onKeyDown
+                                    ,onKeyPress: onKeyPress
+                                    ,onClick: onClick
+                                    ,onDoubleClick: onDoubleClick
+                                    ,onMouseMove: onMouseMove
+                                    ,onMouseDown: onMouseDown
+                                    ,onMouseUp: onMouseUp
+                                    ,onMouseEnter: onMouseEnter
+                                    ,onMouseLeave: onMouseLeave
+                                    ,onMouseOver: onMouseOver
+                                    ,onMouseOut: onMouseOut
+                                    ,on: on
+                                    ,onWithOptions: onWithOptions
+                                    ,defaultOptions: defaultOptions
+                                    ,targetValue: targetValue
+                                    ,targetChecked: targetChecked
+                                    ,keyCode: keyCode
+                                    ,Options: Options};
+};
 Elm.App = Elm.App || {};
 Elm.App.make = function (_elm) {
    "use strict";
@@ -11282,11 +11370,16 @@ Elm.App.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var toPxString = function (pos) {
+      return A2($Basics._op["++"],$Basics.toString(pos),"px");
+   };
    var placeholderView = function (maybe) {
       var _p0 = maybe;
       if (_p0.ctor === "Just") {
@@ -11296,27 +11389,19 @@ Elm.App.make = function (_elm) {
                     ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
                                                      ,_0: "position"
                                                      ,_1: "absolute"}
-                                                    ,{ctor: "_Tuple2",_0: "top",_1: $Basics.toString(_p1.x)}
-                                                    ,{ctor: "_Tuple2",_0: "left",_1: $Basics.toString(_p1.y)}]))]),
+                                                    ,{ctor: "_Tuple2",_0: "top",_1: toPxString(_p1.y)}
+                                                    ,{ctor: "_Tuple2",_0: "left",_1: toPxString(_p1.x)}]))]),
             _U.list([$Html.text("placeholder")]));
          } else {
             return $Html.text("click");
          }
    };
-   var view = F2(function (address,model) {
-      return A2($Html.div,
-      _U.list([$Html$Attributes.$class("board")
-              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                               ,_0: "position"
-                                               ,_1: "relative"}]))]),
-      _U.list([placeholderView(model.placeholder)]));
-   });
    var update = F2(function (action,model) {
       var _p2 = action;
       if (_p2.ctor === "NoOp") {
             return model;
          } else {
-            return model;
+            return _U.update(model,{placeholder: $Maybe.Just(_p2._0)});
          }
    });
    var ShowPlaceholder = function (a) {
@@ -11326,19 +11411,49 @@ Elm.App.make = function (_elm) {
    var actions = $Signal.mailbox(NoOp);
    var emptyModel = {items: _U.list([])
                     ,nextuid: 1
-                    ,placeholder: $Maybe.Nothing};
+                    ,placeholder: $Maybe.Nothing
+                    ,bottomRight: {x: 1000,y: 1000}};
    var initialModel = emptyModel;
    var model = A3($Signal.foldp,
    update,
    initialModel,
    actions.signal);
-   var main = A2($Signal.map,view(actions.address),model);
    var Position = F2(function (a,b) {    return {x: a,y: b};});
+   var eventPos = A3($Json$Decode.object2,
+   Position,
+   A2($Json$Decode._op[":="],"clientX",$Json$Decode.$int),
+   A2($Json$Decode._op[":="],"clientY",$Json$Decode.$int));
+   var view = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("board")
+              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                               ,_0: "position"
+                                               ,_1: "relative"}
+                                              ,{ctor: "_Tuple2",_0: "background-color",_1: "whitesmoke"}
+                                              ,{ctor: "_Tuple2"
+                                               ,_0: "width"
+                                               ,_1: A2($Basics._op["++"],
+                                               $Basics.toString(model.bottomRight.x),
+                                               "px")}
+                                              ,{ctor: "_Tuple2"
+                                               ,_0: "height"
+                                               ,_1: A2($Basics._op["++"],
+                                               $Basics.toString(model.bottomRight.y),
+                                               "px")}]))
+              ,A3($Html$Events.on,
+              "click",
+              eventPos,
+              function (_p3) {
+                 return A2($Signal.message,address,ShowPlaceholder(_p3));
+              })]),
+      _U.list([placeholderView(model.placeholder)]));
+   });
+   var main = A2($Signal.map,view(actions.address),model);
    var Item = F3(function (a,b,c) {
       return {definition: a,position: b,uid: c};
    });
-   var Model = F3(function (a,b,c) {
-      return {items: a,nextuid: b,placeholder: c};
+   var Model = F4(function (a,b,c,d) {
+      return {items: a,nextuid: b,bottomRight: c,placeholder: d};
    });
    return _elm.App.values = {_op: _op
                             ,Model: Model
@@ -11351,7 +11466,9 @@ Elm.App.make = function (_elm) {
                             ,update: update
                             ,view: view
                             ,placeholderView: placeholderView
+                            ,toPxString: toPxString
                             ,main: main
                             ,model: model
-                            ,actions: actions};
+                            ,actions: actions
+                            ,eventPos: eventPos};
 };

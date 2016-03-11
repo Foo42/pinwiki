@@ -1,14 +1,17 @@
 module App where
 
 import Html exposing (..)
+import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Signal exposing (Signal, Address)
+import Json.Decode as Json exposing ((:=))
 
 ------ Models ------
 
 type alias Model = {
   items : List Item,
   nextuid : Int,
+  bottomRight : Position,
   placeholder : Maybe Position
 }
 
@@ -32,7 +35,8 @@ emptyModel =
   {
     items = [],
     nextuid = 1,
-    placeholder = Nothing
+    placeholder = Nothing,
+    bottomRight = {x = 1000, y = 1000}
   }
 
 ------ Updates ------
@@ -45,7 +49,7 @@ update : Action -> Model -> Model
 update action model =
   case action of
     NoOp -> model
-    ShowPlaceholder position -> model
+    ShowPlaceholder position -> {model | placeholder = Just position}
 
 
 ------ View ------
@@ -55,7 +59,13 @@ view address model =
   div
     [
       class "board",
-      style [("position", "relative")]
+      style [
+        ("position", "relative"),
+        ("background-color","whitesmoke"),
+        ("width", toString model.bottomRight.x ++ "px"),
+        ("height", toString model.bottomRight.y ++ "px")
+      ],
+      on "click" eventPos (Signal.message address << ShowPlaceholder)
     ]
     [
       placeholderView model.placeholder
@@ -68,7 +78,7 @@ placeholderView maybe =
       div
         [
           class "placeholder item",
-          style [("position", "absolute"), ("top", toString position.x), ("left", toString position.y)]
+          style [("position", "absolute"), ("top", toPxString position.y), ("left", toPxString position.x)]
         ]
         [
           text "placeholder"
@@ -76,6 +86,9 @@ placeholderView maybe =
 
     Nothing -> text "click"
 
+toPxString: a -> String
+toPxString pos =
+  (toString pos) ++ "px"
 ---- INPUTS ----
 
 -- wire the entire application together
@@ -93,3 +106,11 @@ model =
 actions : Signal.Mailbox Action
 actions =
   Signal.mailbox NoOp
+
+
+eventPos : Json.Decoder Position
+eventPos =
+  Json.object2
+    Position
+    ("clientX" := Json.int)
+    ("clientY" := Json.int)
