@@ -4,6 +4,8 @@
 /deps
 /*.ez
 
+/web/elm/elm-stuff/build-artifacts
+
 # Generate on crash by the VM
 erl_crash.dump
 
