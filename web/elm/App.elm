@@ -18,7 +18,8 @@ type alias Model = {
 type alias Item = {
   definition : String,
   position : Position,
-  uid : Int
+  uid : Int,
+  isEditing : Bool
 }
 
 type alias Position = {
@@ -46,30 +47,44 @@ type Action
   | ShowPlaceholder Position
   | UpdateDefinition String
   | Add String
+  | BeginEdit Int
 
 update : Action -> Model -> Model
 update action model =
-  case action of
+  case (Debug.log "action:" action) of
     NoOp -> model
 
-    ShowPlaceholder position -> {model | placeholder = Just (Item "placeholder" position 0)}
+    BeginEdit id ->
+      let updateEditing item = {item | isEditing = (item.uid == id) }
+      in
+        { model |
+          items = (List.map updateEditing model.items),
+          placeholder = Nothing
+        }
+
+    ShowPlaceholder position ->
+      {model | placeholder = Just (Item "placeholder" position 0 False)}
 
     UpdateDefinition definition ->
       {model | placeholder = (updatePlaceholderDefinition model.placeholder definition)}
 
     Add definition ->
-      let item = {
-        definition = definition,
-        position = (getPositionFromPlaceholder model.placeholder),
-        uid = model.nextuid
-      }
-      in
-        { model |
-          placeholder = Nothing,
-          items = model.items ++ [item],
-          nextuid = model.nextuid + 1
-        }
+      case model.placeholder of
+        Nothing -> {model | items = (List.map (definitionChanged definition) model.items)}
+        Just placeholder ->
+          let item = (Item definition placeholder.position model.nextuid False)
+          in
+            { model |
+              placeholder = Nothing,
+              items = model.items ++ [item],
+              nextuid = model.nextuid + 1
+            }
 
+definitionChanged : String -> Item -> Item
+definitionChanged newDefinition item =
+  case item.isEditing of
+    True -> {item | definition = newDefinition}
+    False -> item
 
 getPositionFromPlaceholder : Maybe Item -> Position
 getPositionFromPlaceholder maybe =
@@ -122,13 +137,13 @@ boardView address model =
         ("width", toString model.bottomRight.x ++ "px"),
         ("height", toString model.bottomRight.y ++ "px")
       ],
-      on "click" eventPos (Signal.message address << ShowPlaceholder)
+      onWithOptions "click" {stopPropagation = True, preventDefault = True} eventPos (Signal.message address << ShowPlaceholder)
     ]
-    ((List.map itemView model.items) ++ [placeholderView model.placeholder])
+    ((List.map (itemView address) model.items) ++ [placeholderView address model.placeholder])
 
 
-itemView : Item -> Html
-itemView item =
+itemView : Address Action -> Item -> Html
+itemView address item =
   div
     [
       class "placeholder item",
@@ -136,16 +151,18 @@ itemView item =
         ("position", "absolute"),
         ("background-color","whitesmoke"),
         ("top", toPxString item.position.y),
-        ("left", toPxString item.position.x)]
+        ("left", toPxString item.position.x)],
+      onWithOptions "click" {stopPropagation = True, preventDefault = True} Json.value (\_ -> Signal.message address NoOp),
+      onDoubleClick address (BeginEdit item.uid)
     ]
     [
       text item.definition
     ]
 
-placeholderView: Maybe Item -> Html
-placeholderView maybe =
+placeholderView : Address Action -> Maybe Item -> Html
+placeholderView address maybe =
   case maybe of
-    Just item -> itemView item
+    Just item -> itemView address item
     Nothing -> text "click"
 
 toPxString: a -> String
@@ -161,7 +178,8 @@ main =
 -- manage the model of our application over time
 model : Signal Model
 model =
-  Signal.foldp update initialModel actions.signal
+  Signal.foldp update initialModel (Signal.map (Debug.watch "Actions") actions.signal)
+
 
 
 -- actions from user input

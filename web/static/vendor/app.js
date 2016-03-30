@@ -11380,37 +11380,27 @@ Elm.App.make = function (_elm) {
    var toPxString = function (pos) {
       return A2($Basics._op["++"],$Basics.toString(pos),"px");
    };
-   var itemView = function (item) {
-      return A2($Html.div,
-      _U.list([$Html$Attributes.$class("placeholder item")
-              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                               ,_0: "position"
-                                               ,_1: "absolute"}
-                                              ,{ctor: "_Tuple2",_0: "background-color",_1: "whitesmoke"}
-                                              ,{ctor: "_Tuple2",_0: "top",_1: toPxString(item.position.y)}
-                                              ,{ctor: "_Tuple2"
-                                               ,_0: "left"
-                                               ,_1: toPxString(item.position.x)}]))]),
-      _U.list([$Html.text(item.definition)]));
-   };
-   var placeholderView = function (maybe) {
-      var _p0 = maybe;
-      if (_p0.ctor === "Just") {
-            return itemView(_p0._0);
-         } else {
-            return $Html.text("click");
-         }
-   };
    var updatePlaceholderDefinition = F2(function (maybe,
    newDefinition) {
-      var _p1 = maybe;
-      if (_p1.ctor === "Nothing") {
+      var _p0 = maybe;
+      if (_p0.ctor === "Nothing") {
             return $Maybe.Nothing;
          } else {
-            return $Maybe.Just(_U.update(_p1._0,
+            return $Maybe.Just(_U.update(_p0._0,
             {definition: newDefinition}));
          }
    });
+   var definitionChanged = F2(function (newDefinition,item) {
+      var _p1 = item.isEditing;
+      if (_p1 === true) {
+            return _U.update(item,{definition: newDefinition});
+         } else {
+            return item;
+         }
+   });
+   var BeginEdit = function (a) {
+      return {ctor: "BeginEdit",_0: a};
+   };
    var Add = function (a) {    return {ctor: "Add",_0: a};};
    var inputView = F2(function (address,model) {
       return A2($Html.div,
@@ -11440,6 +11430,33 @@ Elm.App.make = function (_elm) {
       return {ctor: "ShowPlaceholder",_0: a};
    };
    var NoOp = {ctor: "NoOp"};
+   var itemView = F2(function (address,item) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("placeholder item")
+              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                               ,_0: "position"
+                                               ,_1: "absolute"}
+                                              ,{ctor: "_Tuple2",_0: "background-color",_1: "whitesmoke"}
+                                              ,{ctor: "_Tuple2",_0: "top",_1: toPxString(item.position.y)}
+                                              ,{ctor: "_Tuple2",_0: "left",_1: toPxString(item.position.x)}]))
+              ,A4($Html$Events.onWithOptions,
+              "click",
+              {stopPropagation: true,preventDefault: true},
+              $Json$Decode.value,
+              function (_p3) {
+                 return A2($Signal.message,address,NoOp);
+              })
+              ,A2($Html$Events.onDoubleClick,address,BeginEdit(item.uid))]),
+      _U.list([$Html.text(item.definition)]));
+   });
+   var placeholderView = F2(function (address,maybe) {
+      var _p4 = maybe;
+      if (_p4.ctor === "Just") {
+            return A2(itemView,address,_p4._0);
+         } else {
+            return $Html.text("click");
+         }
+   });
    var actions = $Signal.mailbox(NoOp);
    var emptyModel = {items: _U.list([])
                     ,nextuid: 1
@@ -11448,11 +11465,11 @@ Elm.App.make = function (_elm) {
    var initialModel = emptyModel;
    var Position = F2(function (a,b) {    return {x: a,y: b};});
    var getPositionFromPlaceholder = function (maybe) {
-      var _p3 = maybe;
-      if (_p3.ctor === "Nothing") {
+      var _p5 = maybe;
+      if (_p5.ctor === "Nothing") {
             return A2(Position,0,0);
          } else {
-            return _p3._0.position;
+            return _p5._0.position;
          }
    };
    var eventPos = A3($Json$Decode.object2,
@@ -11475,15 +11492,16 @@ Elm.App.make = function (_elm) {
                                                ,_1: A2($Basics._op["++"],
                                                $Basics.toString(model.bottomRight.y),
                                                "px")}]))
-              ,A3($Html$Events.on,
+              ,A4($Html$Events.onWithOptions,
               "click",
+              {stopPropagation: true,preventDefault: true},
               eventPos,
-              function (_p4) {
-                 return A2($Signal.message,address,ShowPlaceholder(_p4));
+              function (_p6) {
+                 return A2($Signal.message,address,ShowPlaceholder(_p6));
               })]),
       A2($Basics._op["++"],
-      A2($List.map,itemView,model.items),
-      _U.list([placeholderView(model.placeholder)])));
+      A2($List.map,itemView(address),model.items),
+      _U.list([A2(placeholderView,address,model.placeholder)])));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -11491,31 +11509,46 @@ Elm.App.make = function (_elm) {
       _U.list([A2(boardView,address,model)
               ,A2(inputView,address,model)]));
    });
-   var Item = F3(function (a,b,c) {
-      return {definition: a,position: b,uid: c};
+   var Item = F4(function (a,b,c,d) {
+      return {definition: a,position: b,uid: c,isEditing: d};
    });
    var update = F2(function (action,model) {
-      var _p5 = action;
-      switch (_p5.ctor)
+      var _p7 = A2($Debug.log,"action:",action);
+      switch (_p7.ctor)
       {case "NoOp": return model;
+         case "BeginEdit": var updateEditing = function (item) {
+              return _U.update(item,{isEditing: _U.eq(item.uid,_p7._0)});
+           };
+           return _U.update(model,
+           {items: A2($List.map,updateEditing,model.items)
+           ,placeholder: $Maybe.Nothing});
          case "ShowPlaceholder": return _U.update(model,
-           {placeholder: $Maybe.Just(A3(Item,"placeholder",_p5._0,0))});
+           {placeholder: $Maybe.Just(A4(Item,
+           "placeholder",
+           _p7._0,
+           0,
+           false))});
          case "UpdateDefinition": return _U.update(model,
            {placeholder: A2(updatePlaceholderDefinition,
            model.placeholder,
-           _p5._0)});
-         default: var item = {definition: _p5._0
-                             ,position: getPositionFromPlaceholder(model.placeholder)
-                             ,uid: model.nextuid};
-           return _U.update(model,
-           {placeholder: $Maybe.Nothing
-           ,items: A2($Basics._op["++"],model.items,_U.list([item]))
-           ,nextuid: model.nextuid + 1});}
+           _p7._0)});
+         default: var _p9 = _p7._0;
+           var _p8 = model.placeholder;
+           if (_p8.ctor === "Nothing") {
+                 return _U.update(model,
+                 {items: A2($List.map,definitionChanged(_p9),model.items)});
+              } else {
+                 var item = A4(Item,_p9,_p8._0.position,model.nextuid,false);
+                 return _U.update(model,
+                 {placeholder: $Maybe.Nothing
+                 ,items: A2($Basics._op["++"],model.items,_U.list([item]))
+                 ,nextuid: model.nextuid + 1});
+              }}
    });
    var model = A3($Signal.foldp,
    update,
    initialModel,
-   actions.signal);
+   A2($Signal.map,$Debug.watch("Actions"),actions.signal));
    var main = A2($Signal.map,view(actions.address),model);
    var Model = F4(function (a,b,c,d) {
       return {items: a,nextuid: b,bottomRight: c,placeholder: d};
@@ -11530,7 +11563,9 @@ Elm.App.make = function (_elm) {
                             ,ShowPlaceholder: ShowPlaceholder
                             ,UpdateDefinition: UpdateDefinition
                             ,Add: Add
+                            ,BeginEdit: BeginEdit
                             ,update: update
+                            ,definitionChanged: definitionChanged
                             ,getPositionFromPlaceholder: getPositionFromPlaceholder
                             ,updatePlaceholderDefinition: updatePlaceholderDefinition
                             ,view: view
