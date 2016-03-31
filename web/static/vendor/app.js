@@ -11390,6 +11390,13 @@ Elm.App.make = function (_elm) {
             {definition: newDefinition}));
          }
    });
+   var itemBeingEdited = function (items) {
+      return $List.head(A2($List.filter,
+      function (_) {
+         return _.isEditing;
+      },
+      items));
+   };
    var definitionChanged = F2(function (newDefinition,item) {
       var _p1 = item.isEditing;
       if (_p1 === true) {
@@ -11401,7 +11408,9 @@ Elm.App.make = function (_elm) {
    var BeginEdit = function (a) {
       return {ctor: "BeginEdit",_0: a};
    };
-   var Add = function (a) {    return {ctor: "Add",_0: a};};
+   var DefinitionAccepted = function (a) {
+      return {ctor: "DefinitionAccepted",_0: a};
+   };
    var inputView = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
@@ -11415,17 +11424,23 @@ Elm.App.make = function (_elm) {
                                                ,_1: "100%"}]))
               ,$Html$Attributes.placeholder("type...")
               ,$Html$Attributes.autofocus(true)
+              ,$Html$Attributes.value(A2($Maybe.withDefault,
+              "hwlloo",
+              A2($Maybe.andThen,
+              itemBeingEdited(model.items),
+              function (_p2) {
+                 return $Maybe.Just(function (_) {
+                    return _.definition;
+                 }(_p2));
+              })))
               ,A3($Html$Events.on,
               "change",
               $Html$Events.targetValue,
-              function (_p2) {
-                 return A2($Signal.message,address,Add(_p2));
+              function (_p3) {
+                 return A2($Signal.message,address,DefinitionAccepted(_p3));
               })]),
       _U.list([]))]));
    });
-   var UpdateDefinition = function (a) {
-      return {ctor: "UpdateDefinition",_0: a};
-   };
    var ShowPlaceholder = function (a) {
       return {ctor: "ShowPlaceholder",_0: a};
    };
@@ -11443,16 +11458,16 @@ Elm.App.make = function (_elm) {
               "click",
               {stopPropagation: true,preventDefault: true},
               $Json$Decode.value,
-              function (_p3) {
+              function (_p4) {
                  return A2($Signal.message,address,NoOp);
               })
               ,A2($Html$Events.onDoubleClick,address,BeginEdit(item.uid))]),
       _U.list([$Html.text(item.definition)]));
    });
    var placeholderView = F2(function (address,maybe) {
-      var _p4 = maybe;
-      if (_p4.ctor === "Just") {
-            return A2(itemView,address,_p4._0);
+      var _p5 = maybe;
+      if (_p5.ctor === "Just") {
+            return A2(itemView,address,_p5._0);
          } else {
             return $Html.text("click");
          }
@@ -11464,14 +11479,6 @@ Elm.App.make = function (_elm) {
                     ,bottomRight: {x: 1000,y: 1000}};
    var initialModel = emptyModel;
    var Position = F2(function (a,b) {    return {x: a,y: b};});
-   var getPositionFromPlaceholder = function (maybe) {
-      var _p5 = maybe;
-      if (_p5.ctor === "Nothing") {
-            return A2(Position,0,0);
-         } else {
-            return _p5._0.position;
-         }
-   };
    var eventPos = A3($Json$Decode.object2,
    Position,
    A2($Json$Decode._op[":="],"clientX",$Json$Decode.$int),
@@ -11528,10 +11535,6 @@ Elm.App.make = function (_elm) {
            _p7._0,
            0,
            false))});
-         case "UpdateDefinition": return _U.update(model,
-           {placeholder: A2(updatePlaceholderDefinition,
-           model.placeholder,
-           _p7._0)});
          default: var _p9 = _p7._0;
            var _p8 = model.placeholder;
            if (_p8.ctor === "Nothing") {
@@ -11561,12 +11564,11 @@ Elm.App.make = function (_elm) {
                             ,emptyModel: emptyModel
                             ,NoOp: NoOp
                             ,ShowPlaceholder: ShowPlaceholder
-                            ,UpdateDefinition: UpdateDefinition
-                            ,Add: Add
+                            ,DefinitionAccepted: DefinitionAccepted
                             ,BeginEdit: BeginEdit
                             ,update: update
                             ,definitionChanged: definitionChanged
-                            ,getPositionFromPlaceholder: getPositionFromPlaceholder
+                            ,itemBeingEdited: itemBeingEdited
                             ,updatePlaceholderDefinition: updatePlaceholderDefinition
                             ,view: view
                             ,inputView: inputView

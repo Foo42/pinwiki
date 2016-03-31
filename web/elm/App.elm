@@ -45,8 +45,7 @@ emptyModel =
 type Action
   = NoOp
   | ShowPlaceholder Position
-  | UpdateDefinition String
-  | Add String
+  | DefinitionAccepted String
   | BeginEdit Int
 
 update : Action -> Model -> Model
@@ -65,10 +64,7 @@ update action model =
     ShowPlaceholder position ->
       {model | placeholder = Just (Item "placeholder" position 0 False)}
 
-    UpdateDefinition definition ->
-      {model | placeholder = (updatePlaceholderDefinition model.placeholder definition)}
-
-    Add definition ->
+    DefinitionAccepted definition ->
       case model.placeholder of
         Nothing -> {model | items = (List.map (definitionChanged definition) model.items)}
         Just placeholder ->
@@ -86,12 +82,10 @@ definitionChanged newDefinition item =
     True -> {item | definition = newDefinition}
     False -> item
 
-getPositionFromPlaceholder : Maybe Item -> Position
-getPositionFromPlaceholder maybe =
-  case maybe of
-    Nothing -> Position 0 0
-    Just placeholder -> placeholder.position
 
+itemBeingEdited : List Item -> Maybe Item
+itemBeingEdited items =
+  List.head (List.filter .isEditing items)
 
 updatePlaceholderDefinition : Maybe Item -> String -> Maybe Item
 updatePlaceholderDefinition maybe newDefinition =
@@ -121,7 +115,8 @@ inputView address model =
           style [("width", "100%") ],
           (placeholder "type..."),
           (autofocus True),
-          on "change" targetValue (Signal.message address << Add)
+          (value (Maybe.withDefault "" (Maybe.andThen (itemBeingEdited model.items) (Just << .definition)))),
+          on "change" targetValue (Signal.message address << DefinitionAccepted)
         ]
         [
         ]
