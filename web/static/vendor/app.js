@@ -11360,26 +11360,83 @@ Elm.Html.Events.make = function (_elm) {
                                     ,keyCode: keyCode
                                     ,Options: Options};
 };
-Elm.App = Elm.App || {};
-Elm.App.make = function (_elm) {
+Elm.Models = Elm.Models || {};
+Elm.Models.make = function (_elm) {
    "use strict";
-   _elm.App = _elm.App || {};
-   if (_elm.App.values) return _elm.App.values;
+   _elm.Models = _elm.Models || {};
+   if (_elm.Models.values) return _elm.Models.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
-   $Json$Decode = Elm.Json.Decode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var toPxString = function (pos) {
-      return A2($Basics._op["++"],$Basics.toString(pos),"px");
+   var emptyModel = {items: _U.list([])
+                    ,nextuid: 1
+                    ,placeholder: $Maybe.Nothing
+                    ,bottomRight: {x: 1000,y: 1000}};
+   var initialModel = emptyModel;
+   var Position = F2(function (a,b) {    return {x: a,y: b};});
+   var Item = F4(function (a,b,c,d) {
+      return {definition: a,position: b,uid: c,isEditing: d};
+   });
+   var Model = F4(function (a,b,c,d) {
+      return {items: a,nextuid: b,bottomRight: c,placeholder: d};
+   });
+   return _elm.Models.values = {_op: _op
+                               ,Model: Model
+                               ,Item: Item
+                               ,Position: Position
+                               ,initialModel: initialModel
+                               ,emptyModel: emptyModel};
+};
+Elm.Actions = Elm.Actions || {};
+Elm.Actions.make = function (_elm) {
+   "use strict";
+   _elm.Actions = _elm.Actions || {};
+   if (_elm.Actions.values) return _elm.Actions.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Models = Elm.Models.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var BeginEdit = function (a) {
+      return {ctor: "BeginEdit",_0: a};
    };
+   var DefinitionAccepted = function (a) {
+      return {ctor: "DefinitionAccepted",_0: a};
+   };
+   var ShowPlaceholder = function (a) {
+      return {ctor: "ShowPlaceholder",_0: a};
+   };
+   var NoOp = {ctor: "NoOp"};
+   return _elm.Actions.values = {_op: _op
+                                ,NoOp: NoOp
+                                ,ShowPlaceholder: ShowPlaceholder
+                                ,DefinitionAccepted: DefinitionAccepted
+                                ,BeginEdit: BeginEdit};
+};
+Elm.Update = Elm.Update || {};
+Elm.Update.make = function (_elm) {
+   "use strict";
+   _elm.Update = _elm.Update || {};
+   if (_elm.Update.values) return _elm.Update.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Actions = Elm.Actions.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Models = Elm.Models.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
    var updatePlaceholderDefinition = F2(function (maybe,
    newDefinition) {
       var _p0 = maybe;
@@ -11390,13 +11447,6 @@ Elm.App.make = function (_elm) {
             {definition: newDefinition}));
          }
    });
-   var itemBeingEdited = function (items) {
-      return $List.head(A2($List.filter,
-      function (_) {
-         return _.isEditing;
-      },
-      items));
-   };
    var definitionChanged = F2(function (newDefinition,item) {
       var _p1 = item.isEditing;
       if (_p1 === true) {
@@ -11405,46 +11455,77 @@ Elm.App.make = function (_elm) {
             return item;
          }
    });
-   var BeginEdit = function (a) {
-      return {ctor: "BeginEdit",_0: a};
-   };
-   var DefinitionAccepted = function (a) {
-      return {ctor: "DefinitionAccepted",_0: a};
-   };
-   var inputView = F2(function (address,model) {
-      return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                               ,_0: "width"
-                                               ,_1: "100%"}
-                                              ,{ctor: "_Tuple2",_0: "position",_1: "fixed"}
-                                              ,{ctor: "_Tuple2",_0: "bottom",_1: "0"}]))]),
-      _U.list([A2($Html.input,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                               ,_0: "width"
-                                               ,_1: "100%"}]))
-              ,$Html$Attributes.placeholder("type...")
-              ,$Html$Attributes.autofocus(true)
-              ,$Html$Attributes.value(A2($Maybe.withDefault,
-              "hwlloo",
-              A2($Maybe.andThen,
-              itemBeingEdited(model.items),
-              function (_p2) {
-                 return $Maybe.Just(function (_) {
-                    return _.definition;
-                 }(_p2));
-              })))
-              ,A3($Html$Events.on,
-              "change",
-              $Html$Events.targetValue,
-              function (_p3) {
-                 return A2($Signal.message,address,DefinitionAccepted(_p3));
-              })]),
-      _U.list([]))]));
+   var update = F2(function (action,model) {
+      var _p2 = A2($Debug.log,"action:",action);
+      switch (_p2.ctor)
+      {case "NoOp": return model;
+         case "BeginEdit": var updateEditing = function (item) {
+              return _U.update(item,{isEditing: _U.eq(item.uid,_p2._0)});
+           };
+           return _U.update(model,
+           {items: A2($List.map,updateEditing,model.items)
+           ,placeholder: $Maybe.Nothing});
+         case "ShowPlaceholder": return _U.update(model,
+           {placeholder: $Maybe.Just(A4($Models.Item,
+           "placeholder",
+           _p2._0,
+           0,
+           false))});
+         default: var _p4 = _p2._0;
+           var _p3 = model.placeholder;
+           if (_p3.ctor === "Nothing") {
+                 return _U.update(model,
+                 {items: A2($List.map,definitionChanged(_p4),model.items)});
+              } else {
+                 var item = A4($Models.Item,
+                 _p4,
+                 _p3._0.position,
+                 model.nextuid,
+                 false);
+                 return _U.update(model,
+                 {placeholder: $Maybe.Nothing
+                 ,items: A2($Basics._op["++"],model.items,_U.list([item]))
+                 ,nextuid: model.nextuid + 1});
+              }}
    });
-   var ShowPlaceholder = function (a) {
-      return {ctor: "ShowPlaceholder",_0: a};
+   return _elm.Update.values = {_op: _op
+                               ,update: update
+                               ,definitionChanged: definitionChanged
+                               ,updatePlaceholderDefinition: updatePlaceholderDefinition};
+};
+Elm.View = Elm.View || {};
+Elm.View.make = function (_elm) {
+   "use strict";
+   _elm.View = _elm.View || {};
+   if (_elm.View.values) return _elm.View.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Actions = Elm.Actions.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Models = Elm.Models.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var eventPos = A3($Json$Decode.object2,
+   $Models.Position,
+   A2($Json$Decode._op[":="],"clientX",$Json$Decode.$int),
+   A2($Json$Decode._op[":="],"clientY",$Json$Decode.$int));
+   var itemBeingEdited = function (items) {
+      return $List.head(A2($List.filter,
+      function (_) {
+         return _.isEditing;
+      },
+      items));
    };
-   var NoOp = {ctor: "NoOp"};
+   var toPxString = function (pos) {
+      return A2($Basics._op["++"],$Basics.toString(pos),"px");
+   };
    var itemView = F2(function (address,item) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("placeholder item")
@@ -11458,31 +11539,22 @@ Elm.App.make = function (_elm) {
               "click",
               {stopPropagation: true,preventDefault: true},
               $Json$Decode.value,
-              function (_p4) {
-                 return A2($Signal.message,address,NoOp);
+              function (_p0) {
+                 return A2($Signal.message,address,$Actions.NoOp);
               })
-              ,A2($Html$Events.onDoubleClick,address,BeginEdit(item.uid))]),
+              ,A2($Html$Events.onDoubleClick,
+              address,
+              $Actions.BeginEdit(item.uid))]),
       _U.list([$Html.text(item.definition)]));
    });
    var placeholderView = F2(function (address,maybe) {
-      var _p5 = maybe;
-      if (_p5.ctor === "Just") {
-            return A2(itemView,address,_p5._0);
+      var _p1 = maybe;
+      if (_p1.ctor === "Just") {
+            return A2(itemView,address,_p1._0);
          } else {
             return $Html.text("click");
          }
    });
-   var actions = $Signal.mailbox(NoOp);
-   var emptyModel = {items: _U.list([])
-                    ,nextuid: 1
-                    ,placeholder: $Maybe.Nothing
-                    ,bottomRight: {x: 1000,y: 1000}};
-   var initialModel = emptyModel;
-   var Position = F2(function (a,b) {    return {x: a,y: b};});
-   var eventPos = A3($Json$Decode.object2,
-   Position,
-   A2($Json$Decode._op[":="],"clientX",$Json$Decode.$int),
-   A2($Json$Decode._op[":="],"clientY",$Json$Decode.$int));
    var boardView = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("board")
@@ -11503,12 +11575,46 @@ Elm.App.make = function (_elm) {
               "click",
               {stopPropagation: true,preventDefault: true},
               eventPos,
-              function (_p6) {
-                 return A2($Signal.message,address,ShowPlaceholder(_p6));
+              function (_p2) {
+                 return A2($Signal.message,
+                 address,
+                 $Actions.ShowPlaceholder(_p2));
               })]),
       A2($Basics._op["++"],
       A2($List.map,itemView(address),model.items),
       _U.list([A2(placeholderView,address,model.placeholder)])));
+   });
+   var inputView = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                               ,_0: "width"
+                                               ,_1: "100%"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "fixed"}
+                                              ,{ctor: "_Tuple2",_0: "bottom",_1: "0"}]))]),
+      _U.list([A2($Html.input,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                               ,_0: "width"
+                                               ,_1: "100%"}]))
+              ,$Html$Attributes.placeholder("type...")
+              ,$Html$Attributes.autofocus(true)
+              ,$Html$Attributes.value(A2($Maybe.withDefault,
+              "",
+              A2($Maybe.andThen,
+              itemBeingEdited(model.items),
+              function (_p3) {
+                 return $Maybe.Just(function (_) {
+                    return _.definition;
+                 }(_p3));
+              })))
+              ,A3($Html$Events.on,
+              "change",
+              $Html$Events.targetValue,
+              function (_p4) {
+                 return A2($Signal.message,
+                 address,
+                 $Actions.DefinitionAccepted(_p4));
+              })]),
+      _U.list([]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -11516,68 +11622,42 @@ Elm.App.make = function (_elm) {
       _U.list([A2(boardView,address,model)
               ,A2(inputView,address,model)]));
    });
-   var Item = F4(function (a,b,c,d) {
-      return {definition: a,position: b,uid: c,isEditing: d};
-   });
-   var update = F2(function (action,model) {
-      var _p7 = A2($Debug.log,"action:",action);
-      switch (_p7.ctor)
-      {case "NoOp": return model;
-         case "BeginEdit": var updateEditing = function (item) {
-              return _U.update(item,{isEditing: _U.eq(item.uid,_p7._0)});
-           };
-           return _U.update(model,
-           {items: A2($List.map,updateEditing,model.items)
-           ,placeholder: $Maybe.Nothing});
-         case "ShowPlaceholder": return _U.update(model,
-           {placeholder: $Maybe.Just(A4(Item,
-           "placeholder",
-           _p7._0,
-           0,
-           false))});
-         default: var _p9 = _p7._0;
-           var _p8 = model.placeholder;
-           if (_p8.ctor === "Nothing") {
-                 return _U.update(model,
-                 {items: A2($List.map,definitionChanged(_p9),model.items)});
-              } else {
-                 var item = A4(Item,_p9,_p8._0.position,model.nextuid,false);
-                 return _U.update(model,
-                 {placeholder: $Maybe.Nothing
-                 ,items: A2($Basics._op["++"],model.items,_U.list([item]))
-                 ,nextuid: model.nextuid + 1});
-              }}
-   });
+   return _elm.View.values = {_op: _op
+                             ,view: view
+                             ,inputView: inputView
+                             ,boardView: boardView
+                             ,itemView: itemView
+                             ,placeholderView: placeholderView
+                             ,toPxString: toPxString
+                             ,itemBeingEdited: itemBeingEdited
+                             ,eventPos: eventPos};
+};
+Elm.App = Elm.App || {};
+Elm.App.make = function (_elm) {
+   "use strict";
+   _elm.App = _elm.App || {};
+   if (_elm.App.values) return _elm.App.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Actions = Elm.Actions.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Models = Elm.Models.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Update = Elm.Update.make(_elm),
+   $View = Elm.View.make(_elm);
+   var _op = {};
+   var actions = $Signal.mailbox($Actions.NoOp);
    var model = A3($Signal.foldp,
-   update,
-   initialModel,
+   $Update.update,
+   $Models.initialModel,
    A2($Signal.map,$Debug.watch("Actions"),actions.signal));
-   var main = A2($Signal.map,view(actions.address),model);
-   var Model = F4(function (a,b,c,d) {
-      return {items: a,nextuid: b,bottomRight: c,placeholder: d};
-   });
+   var main = A2($Signal.map,$View.view(actions.address),model);
    return _elm.App.values = {_op: _op
-                            ,Model: Model
-                            ,Item: Item
-                            ,Position: Position
-                            ,initialModel: initialModel
-                            ,emptyModel: emptyModel
-                            ,NoOp: NoOp
-                            ,ShowPlaceholder: ShowPlaceholder
-                            ,DefinitionAccepted: DefinitionAccepted
-                            ,BeginEdit: BeginEdit
-                            ,update: update
-                            ,definitionChanged: definitionChanged
-                            ,itemBeingEdited: itemBeingEdited
-                            ,updatePlaceholderDefinition: updatePlaceholderDefinition
-                            ,view: view
-                            ,inputView: inputView
-                            ,boardView: boardView
-                            ,itemView: itemView
-                            ,placeholderView: placeholderView
-                            ,toPxString: toPxString
                             ,main: main
                             ,model: model
-                            ,actions: actions
-                            ,eventPos: eventPos};
+                            ,actions: actions};
 };
