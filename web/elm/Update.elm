@@ -17,11 +17,14 @@ update action model =
         }
 
     ShowPlaceholder position ->
-      {model | placeholder = Just (Item "placeholder" position 0 False)}
+      { model |
+        placeholder = Just (Item "placeholder" position 0 True),
+        items = (stopEditing model.items)
+      }
 
     DefinitionAccepted definition ->
       case model.placeholder of
-        Nothing -> {model | items = (List.map (definitionChanged definition) model.items)}
+        Nothing -> {model | items = ((List.map (definitionChanged definition) model.items) |> stopEditing)}
         Just placeholder ->
           let item = (Item definition placeholder.position model.nextuid False)
           in
@@ -43,3 +46,8 @@ updatePlaceholderDefinition maybe newDefinition =
   case maybe of
     Nothing -> Nothing
     Just item -> Just {item | definition = newDefinition}
+
+stopEditing : List Item -> List Item
+stopEditing items =
+  items
+  |> List.map(\item -> {item | isEditing = False})

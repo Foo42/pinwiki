@@ -8,6 +8,7 @@ import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import Signal exposing (Signal, Address)
 import Json.Decode as Json exposing ((:=))
+import String exposing (join)
 
 ------ View ------
 view: Address Action -> Model -> Html
@@ -57,7 +58,7 @@ itemView : Address Action -> Item -> Html
 itemView address item =
   div
     [
-      class "placeholder item",
+      class (itemClasses item),
       style [
         ("position", "absolute"),
         ("background-color","whitesmoke"),
@@ -69,6 +70,13 @@ itemView address item =
     [
       text item.definition
     ]
+
+itemClasses : Item -> String
+itemClasses item =
+  [("placeholder", item.uid == 0), ("item", True), ("being-edited", item.isEditing)]
+  |> List.filter snd
+  |> List.map fst
+  |> String.join " "
 
 placeholderView : Address Action -> Maybe Item -> Html
 placeholderView address maybe =

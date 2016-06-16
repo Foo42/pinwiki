@@ -11437,6 +11437,13 @@ Elm.Update.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var stopEditing = function (items) {
+      return A2($List.map,
+      function (item) {
+         return _U.update(item,{isEditing: false});
+      },
+      items);
+   };
    var updatePlaceholderDefinition = F2(function (maybe,
    newDefinition) {
       var _p0 = maybe;
@@ -11470,12 +11477,15 @@ Elm.Update.make = function (_elm) {
            "placeholder",
            _p2._0,
            0,
-           false))});
+           true))
+           ,items: stopEditing(model.items)});
          default: var _p4 = _p2._0;
            var _p3 = model.placeholder;
            if (_p3.ctor === "Nothing") {
                  return _U.update(model,
-                 {items: A2($List.map,definitionChanged(_p4),model.items)});
+                 {items: stopEditing(A2($List.map,
+                 definitionChanged(_p4),
+                 model.items))});
               } else {
                  var item = A4($Models.Item,
                  _p4,
@@ -11491,7 +11501,8 @@ Elm.Update.make = function (_elm) {
    return _elm.Update.values = {_op: _op
                                ,update: update
                                ,definitionChanged: definitionChanged
-                               ,updatePlaceholderDefinition: updatePlaceholderDefinition};
+                               ,updatePlaceholderDefinition: updatePlaceholderDefinition
+                               ,stopEditing: stopEditing};
 };
 Elm.View = Elm.View || {};
 Elm.View.make = function (_elm) {
@@ -11510,7 +11521,8 @@ Elm.View.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Models = Elm.Models.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
    var eventPos = A3($Json$Decode.object2,
    $Models.Position,
@@ -11526,9 +11538,22 @@ Elm.View.make = function (_elm) {
    var toPxString = function (pos) {
       return A2($Basics._op["++"],$Basics.toString(pos),"px");
    };
+   var itemClasses = function (item) {
+      return A2($String.join,
+      " ",
+      A2($List.map,
+      $Basics.fst,
+      A2($List.filter,
+      $Basics.snd,
+      _U.list([{ctor: "_Tuple2"
+               ,_0: "placeholder"
+               ,_1: _U.eq(item.uid,0)}
+              ,{ctor: "_Tuple2",_0: "item",_1: true}
+              ,{ctor: "_Tuple2",_0: "being-edited",_1: item.isEditing}]))));
+   };
    var itemView = F2(function (address,item) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.$class("placeholder item")
+      _U.list([$Html$Attributes.$class(itemClasses(item))
               ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
                                                ,_0: "position"
                                                ,_1: "absolute"}
@@ -11627,6 +11652,7 @@ Elm.View.make = function (_elm) {
                              ,inputView: inputView
                              ,boardView: boardView
                              ,itemView: itemView
+                             ,itemClasses: itemClasses
                              ,placeholderView: placeholderView
                              ,toPxString: toPxString
                              ,itemBeingEdited: itemBeingEdited
