@@ -13,7 +13,8 @@ update action model =
       in
         { model |
           items = (List.map updateEditing model.items),
-          placeholder = Nothing
+          placeholder = Nothing,
+          editing = (findById id model.items)
         }
 
     ShowPlaceholder position ->
@@ -40,6 +41,9 @@ definitionChanged newDefinition item =
     True -> {item | definition = newDefinition}
     False -> item
 
+findById : Int -> List Item -> Maybe Item
+findById targetId items =
+  (List.filter (\item -> item.uid == targetId) items) |> List.head
 
 updatePlaceholderDefinition : Maybe Item -> String -> Maybe Item
 updatePlaceholderDefinition maybe newDefinition =

@@ -4,7 +4,8 @@ type alias Model = {
   items : List Item,
   nextuid : Int,
   bottomRight : Position,
-  placeholder : Maybe Item
+  placeholder : Maybe Item,
+  editing: Maybe Item
 }
 
 type alias Item = {
@@ -29,5 +30,6 @@ emptyModel =
     items = [],
     nextuid = 1,
     placeholder = Nothing,
-    bottomRight = {x = 1000, y = 1000}
+    bottomRight = {x = 1000, y = 1000},
+    editing = Nothing
   }

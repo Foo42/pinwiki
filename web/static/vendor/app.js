@@ -11376,14 +11376,19 @@ Elm.Models.make = function (_elm) {
    var emptyModel = {items: _U.list([])
                     ,nextuid: 1
                     ,placeholder: $Maybe.Nothing
-                    ,bottomRight: {x: 1000,y: 1000}};
+                    ,bottomRight: {x: 1000,y: 1000}
+                    ,editing: $Maybe.Nothing};
    var initialModel = emptyModel;
    var Position = F2(function (a,b) {    return {x: a,y: b};});
    var Item = F4(function (a,b,c,d) {
       return {definition: a,position: b,uid: c,isEditing: d};
    });
-   var Model = F4(function (a,b,c,d) {
-      return {items: a,nextuid: b,bottomRight: c,placeholder: d};
+   var Model = F5(function (a,b,c,d,e) {
+      return {items: a
+             ,nextuid: b
+             ,bottomRight: c
+             ,placeholder: d
+             ,editing: e};
    });
    return _elm.Models.values = {_op: _op
                                ,Model: Model
@@ -11454,6 +11459,13 @@ Elm.Update.make = function (_elm) {
             {definition: newDefinition}));
          }
    });
+   var findById = F2(function (targetId,items) {
+      return $List.head(A2($List.filter,
+      function (item) {
+         return _U.eq(item.uid,targetId);
+      },
+      items));
+   });
    var definitionChanged = F2(function (newDefinition,item) {
       var _p1 = item.isEditing;
       if (_p1 === true) {
@@ -11466,12 +11478,14 @@ Elm.Update.make = function (_elm) {
       var _p2 = A2($Debug.log,"action:",action);
       switch (_p2.ctor)
       {case "NoOp": return model;
-         case "BeginEdit": var updateEditing = function (item) {
-              return _U.update(item,{isEditing: _U.eq(item.uid,_p2._0)});
+         case "BeginEdit": var _p3 = _p2._0;
+           var updateEditing = function (item) {
+              return _U.update(item,{isEditing: _U.eq(item.uid,_p3)});
            };
            return _U.update(model,
            {items: A2($List.map,updateEditing,model.items)
-           ,placeholder: $Maybe.Nothing});
+           ,placeholder: $Maybe.Nothing
+           ,editing: A2(findById,_p3,model.items)});
          case "ShowPlaceholder": return _U.update(model,
            {placeholder: $Maybe.Just(A4($Models.Item,
            "placeholder",
@@ -11479,17 +11493,17 @@ Elm.Update.make = function (_elm) {
            0,
            true))
            ,items: stopEditing(model.items)});
-         default: var _p4 = _p2._0;
-           var _p3 = model.placeholder;
-           if (_p3.ctor === "Nothing") {
+         default: var _p5 = _p2._0;
+           var _p4 = model.placeholder;
+           if (_p4.ctor === "Nothing") {
                  return _U.update(model,
                  {items: stopEditing(A2($List.map,
-                 definitionChanged(_p4),
+                 definitionChanged(_p5),
                  model.items))});
               } else {
                  var item = A4($Models.Item,
-                 _p4,
-                 _p3._0.position,
+                 _p5,
+                 _p4._0.position,
                  model.nextuid,
                  false);
                  return _U.update(model,
@@ -11501,6 +11515,7 @@ Elm.Update.make = function (_elm) {
    return _elm.Update.values = {_op: _op
                                ,update: update
                                ,definitionChanged: definitionChanged
+                               ,findById: findById
                                ,updatePlaceholderDefinition: updatePlaceholderDefinition
                                ,stopEditing: stopEditing};
 };
