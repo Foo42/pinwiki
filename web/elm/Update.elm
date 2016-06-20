@@ -1,11 +1,11 @@
-module Update where
+module Update exposing (..)
 
 import Models exposing (..)
-import Actions exposing (..)
+import Msg exposing (..)
 
-update : Action -> Model -> Model
-update action model =
-  case (Debug.log "action:" action) of
+update : Msg -> Model -> Model
+update msg model =
+  case (Debug.log "msg:" msg) of
     NoOp -> model
 
     BeginEdit id ->
