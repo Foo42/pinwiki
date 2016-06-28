@@ -31,11 +31,10 @@ inputView model =
           style [("width", "100%") ],
           (placeholder "type..."),
           (autofocus True),
-          (value (Maybe.withDefault "" (Maybe.andThen (itemBeingEdited model.items) (Just << .definition))))
-          -- , on "change" targetValue DefinitionAccepted
+          (value (Maybe.withDefault "" (Maybe.andThen (itemBeingEdited model.items) (Just << .definition)))),
+          on "change" (Json.object1 DefinitionAccepted targetValue)
         ]
-        [
-        ]
+        []
     ]
 
 boardView: Model -> Html Msg
@@ -48,10 +47,9 @@ boardView model =
         ("width", toString model.bottomRight.x ++ "px"),
         ("height", toString model.bottomRight.y ++ "px")
       ]
-      -- ,onWithOptions "click" {stopPropagation = True, preventDefault = True} eventPos (Signal.message address << ShowPlaceholder)
+      , on "click" (Json.object1 ShowPlaceholder eventPos)
     ]
     ((List.map (itemView) model.items) ++ [placeholderView model.placeholder])
-
 
 itemView : Item -> Html Msg
 itemView item =
@@ -63,8 +61,7 @@ itemView item =
         ("background-color","whitesmoke"),
         ("top", toPxString item.position.y),
         ("left", toPxString item.position.x)]
-      -- , onWithOptions "click" {stopPropagation = True, preventDefault = True} Json.value (\_ -> Signal.message address NoOp),
-      -- onDoubleClick address (BeginEdit item.uid)
+      , onWithOptions "click" {stopPropagation = True, preventDefault = True} (Json.succeed (BeginEdit item.uid))
     ]
     [
       text item.definition

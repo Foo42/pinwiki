@@ -7418,7 +7418,13 @@ var _user$project$View$itemView = function (item) {
 						_0: 'left',
 						_1: _user$project$View$toPxString(item.position.x)
 					}
-					]))
+					])),
+				A3(
+				_elm_lang$html$Html_Events$onWithOptions,
+				'click',
+				{stopPropagation: true, preventDefault: true},
+				_elm_lang$core$Json_Decode$succeed(
+					_user$project$Msg$BeginEdit(item.uid)))
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -7459,7 +7465,11 @@ var _user$project$View$boardView = function (model) {
 							_elm_lang$core$Basics$toString(model.bottomRight.y),
 							'px')
 					}
-					]))
+					])),
+				A2(
+				_elm_lang$html$Html_Events$on,
+				'click',
+				A2(_elm_lang$core$Json_Decode$object1, _user$project$Msg$ShowPlaceholder, _user$project$View$eventPos))
 			]),
 		A2(
 			_elm_lang$core$Basics_ops['++'],
@@ -7507,7 +7517,11 @@ var _user$project$View$inputView = function (model) {
 										function (_) {
 											return _.definition;
 										}(_p1));
-								})))
+								}))),
+						A2(
+						_elm_lang$html$Html_Events$on,
+						'change',
+						A2(_elm_lang$core$Json_Decode$object1, _user$project$Msg$DefinitionAccepted, _elm_lang$html$Html_Events$targetValue))
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[]))
