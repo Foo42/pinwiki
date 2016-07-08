@@ -23,3 +23,12 @@ import "phoenix_html"
 // Set up our Elm App
 const elmDiv = document.querySelector('#elm-container');
 const elmApp = Elm.Main.embed(elmDiv);
+elmApp.ports.jsAlert.subscribe(text => alert(text));
+elmApp.ports.focus.subscribe(selector => {
+    setTimeout(function () {
+        var nodes = document.querySelectorAll(selector);
+        if (nodes.length === 1 && document.activeElement !== nodes[0]) {
+            nodes[0].focus();
+        }
+    }, 50);
+});

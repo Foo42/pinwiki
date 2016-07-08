@@ -2,11 +2,12 @@ module Update exposing (..)
 
 import Models exposing (..)
 import Msg exposing (..)
+import MyPorts
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case (Debug.log "msg:" msg) of
-    NoOp -> model
+    NoOp -> model ! []
 
     BeginEdit id ->
       let updateEditing item = {item | isEditing = (item.uid == id) }
@@ -15,17 +16,17 @@ update msg model =
           items = (List.map updateEditing model.items),
           placeholder = Nothing,
           editing = (findById id model.items)
-        }
+        } ! [MyPorts.focus "#bottom-edit"]
 
     ShowPlaceholder position ->
       { model |
         placeholder = Just (Item "placeholder" position 0 True),
         items = (stopEditing model.items)
-      }
+      } ! []
 
     DefinitionAccepted definition ->
       case model.placeholder of
-        Nothing -> {model | items = ((List.map (definitionChanged definition) model.items) |> stopEditing)}
+        Nothing -> {model | items = ((List.map (definitionChanged definition) model.items) |> stopEditing)} ! []
         Just placeholder ->
           let item = (Item definition placeholder.position model.nextuid False)
           in
@@ -33,7 +34,7 @@ update msg model =
               placeholder = Nothing,
               items = model.items ++ [item],
               nextuid = model.nextuid + 1
-            }
+            } ! []
 
 definitionChanged : String -> Item -> Item
 definitionChanged newDefinition item =

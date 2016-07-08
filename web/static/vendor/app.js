@@ -7252,6 +7252,17 @@ var _user$project$Msg$ShowPlaceholder = function (a) {
 };
 var _user$project$Msg$NoOp = {ctor: 'NoOp'};
 
+var _user$project$MyPorts$jsAlert = _elm_lang$core$Native_Platform.outgoingPort(
+	'jsAlert',
+	function (v) {
+		return v;
+	});
+var _user$project$MyPorts$focus = _elm_lang$core$Native_Platform.outgoingPort(
+	'focus',
+	function (v) {
+		return v;
+	});
+
 var _user$project$Update$stopEditing = function (items) {
 	return A2(
 		_elm_lang$core$List$map,
@@ -7300,7 +7311,11 @@ var _user$project$Update$update = F2(
 		var _p2 = A2(_elm_lang$core$Debug$log, 'msg:', msg);
 		switch (_p2.ctor) {
 			case 'NoOp':
-				return model;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					_elm_lang$core$Native_List.fromArray(
+						[]));
 			case 'BeginEdit':
 				var _p3 = _p2._0;
 				var updateEditing = function (item) {
@@ -7310,47 +7325,65 @@ var _user$project$Update$update = F2(
 							isEditing: _elm_lang$core$Native_Utils.eq(item.uid, _p3)
 						});
 				};
-				return _elm_lang$core$Native_Utils.update(
-					model,
-					{
-						items: A2(_elm_lang$core$List$map, updateEditing, model.items),
-						placeholder: _elm_lang$core$Maybe$Nothing,
-						editing: A2(_user$project$Update$findById, _p3, model.items)
-					});
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							items: A2(_elm_lang$core$List$map, updateEditing, model.items),
+							placeholder: _elm_lang$core$Maybe$Nothing,
+							editing: A2(_user$project$Update$findById, _p3, model.items)
+						}),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_user$project$MyPorts$focus('#bottom-edit')
+						]));
 			case 'ShowPlaceholder':
-				return _elm_lang$core$Native_Utils.update(
-					model,
-					{
-						placeholder: _elm_lang$core$Maybe$Just(
-							A4(_user$project$Models$Item, 'placeholder', _p2._0, 0, true)),
-						items: _user$project$Update$stopEditing(model.items)
-					});
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							placeholder: _elm_lang$core$Maybe$Just(
+								A4(_user$project$Models$Item, 'placeholder', _p2._0, 0, true)),
+							items: _user$project$Update$stopEditing(model.items)
+						}),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
 			default:
 				var _p5 = _p2._0;
 				var _p4 = model.placeholder;
 				if (_p4.ctor === 'Nothing') {
-					return _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							items: _user$project$Update$stopEditing(
-								A2(
-									_elm_lang$core$List$map,
-									_user$project$Update$definitionChanged(_p5),
-									model.items))
-						});
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								items: _user$project$Update$stopEditing(
+									A2(
+										_elm_lang$core$List$map,
+										_user$project$Update$definitionChanged(_p5),
+										model.items))
+							}),
+						_elm_lang$core$Native_List.fromArray(
+							[]));
 				} else {
 					var item = A4(_user$project$Models$Item, _p5, _p4._0.position, model.nextuid, false);
-					return _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							placeholder: _elm_lang$core$Maybe$Nothing,
-							items: A2(
-								_elm_lang$core$Basics_ops['++'],
-								model.items,
-								_elm_lang$core$Native_List.fromArray(
-									[item])),
-							nextuid: model.nextuid + 1
-						});
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								placeholder: _elm_lang$core$Maybe$Nothing,
+								items: A2(
+									_elm_lang$core$Basics_ops['++'],
+									model.items,
+									_elm_lang$core$Native_List.fromArray(
+										[item])),
+								nextuid: model.nextuid + 1
+							}),
+						_elm_lang$core$Native_List.fromArray(
+							[]));
 				}
 		}
 	});
@@ -7403,6 +7436,7 @@ var _user$project$View$itemView = function (item) {
 			[
 				_elm_lang$html$Html_Attributes$class(
 				_user$project$View$itemClasses(item)),
+				_elm_lang$html$Html_Attributes$draggable('true'),
 				_elm_lang$html$Html_Attributes$style(
 				_elm_lang$core$Native_List.fromArray(
 					[
@@ -7498,6 +7532,7 @@ var _user$project$View$inputView = function (model) {
 				_elm_lang$html$Html$input,
 				_elm_lang$core$Native_List.fromArray(
 					[
+						_elm_lang$html$Html_Attributes$id('bottom-edit'),
 						_elm_lang$html$Html_Attributes$style(
 						_elm_lang$core$Native_List.fromArray(
 							[
@@ -7540,8 +7575,19 @@ var _user$project$View$view = function (model) {
 };
 
 var _user$project$Main$main = {
-	main: _elm_lang$html$Html_App$beginnerProgram(
-		{model: _user$project$Models$initialModel, update: _user$project$Update$update, view: _user$project$View$view})
+	main: _elm_lang$html$Html_App$program(
+		{
+			init: A2(
+				_elm_lang$core$Platform_Cmd_ops['!'],
+				_user$project$Models$initialModel,
+				_elm_lang$core$Native_List.fromArray(
+					[])),
+			update: _user$project$Update$update,
+			subscriptions: function (_p0) {
+				return _elm_lang$core$Platform_Sub$none;
+			},
+			view: _user$project$View$view
+		})
 };
 
 var Elm = {};

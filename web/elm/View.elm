@@ -28,6 +28,7 @@ inputView model =
     [
       input
         [
+          id "bottom-edit",
           style [("width", "100%") ],
           (placeholder "type..."),
           (autofocus True),
@@ -56,6 +57,7 @@ itemView item =
   div
     [
       class (itemClasses item),
+      draggable "true",
       style [
         ("position", "absolute"),
         ("background-color","whitesmoke"),
