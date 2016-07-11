@@ -7349,7 +7349,9 @@ var _user$project$Update$update = F2(
 							items: _user$project$Update$stopEditing(model.items)
 						}),
 					_elm_lang$core$Native_List.fromArray(
-						[]));
+						[
+							_user$project$MyPorts$focus('#bottom-edit')
+						]));
 			default:
 				var _p5 = _p2._0;
 				var _p4 = model.placeholder;

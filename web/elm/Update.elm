@@ -22,7 +22,7 @@ update msg model =
       { model |
         placeholder = Just (Item "placeholder" position 0 True),
         items = (stopEditing model.items)
-      } ! []
+      } ! [MyPorts.focus "#bottom-edit"]
 
     DefinitionAccepted definition ->
       case model.placeholder of
