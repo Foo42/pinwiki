@@ -20,7 +20,7 @@ update msg model =
 
     ShowPlaceholder position ->
       { model |
-        placeholder = Just (Item "placeholder" position 0 True),
+        placeholder = Just (Item "placeholder" position 0 True False),
         items = (stopEditing model.items)
       } ! [MyPorts.focus "#bottom-edit"]
 
@@ -28,7 +28,7 @@ update msg model =
       case model.placeholder of
         Nothing -> {model | items = ((List.map (definitionChanged definition) model.items) |> stopEditing)} ! []
         Just placeholder ->
-          let item = (Item definition placeholder.position model.nextuid False)
+          let item = (Item definition placeholder.position model.nextuid False False)
           in
             { model |
               placeholder = Nothing,

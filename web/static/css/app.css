@@ -85,3 +85,14 @@ form.link, form.button {
 .item.being-edited{
   box-shadow: 2px 2px 15px 0px rgba(0,0,0,0.5);
 }
+
+.item .item-control {
+  display: none;
+  position: absolute;
+  transition: transform 0.5s ease;
+}
+
+.item.being-edited .item-control {
+  display: inherit;
+  transform: translateX(-4em);
+}

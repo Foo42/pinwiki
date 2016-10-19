@@ -7232,9 +7232,9 @@ var _user$project$Models$Model = F5(
 	function (a, b, c, d, e) {
 		return {items: a, nextuid: b, bottomRight: c, placeholder: d, editing: e};
 	});
-var _user$project$Models$Item = F4(
-	function (a, b, c, d) {
-		return {definition: a, position: b, uid: c, isEditing: d};
+var _user$project$Models$Item = F5(
+	function (a, b, c, d, e) {
+		return {definition: a, position: b, uid: c, isEditing: d, isSelected: e};
 	});
 var _user$project$Models$Position = F2(
 	function (a, b) {
@@ -7345,7 +7345,7 @@ var _user$project$Update$update = F2(
 						model,
 						{
 							placeholder: _elm_lang$core$Maybe$Just(
-								A4(_user$project$Models$Item, 'placeholder', _p2._0, 0, true)),
+								A5(_user$project$Models$Item, 'placeholder', _p2._0, 0, true, false)),
 							items: _user$project$Update$stopEditing(model.items)
 						}),
 					_elm_lang$core$Native_List.fromArray(
@@ -7370,7 +7370,7 @@ var _user$project$Update$update = F2(
 						_elm_lang$core$Native_List.fromArray(
 							[]));
 				} else {
-					var item = A4(_user$project$Models$Item, _p5, _p4._0.position, model.nextuid, false);
+					var item = A5(_user$project$Models$Item, _p5, _p4._0.position, model.nextuid, false, false);
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -7464,7 +7464,17 @@ var _user$project$View$itemView = function (item) {
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html$text(item.definition)
+				_elm_lang$html$Html$text(item.definition),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('item-control delete-item-control')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('delete')
+					]))
 			]));
 };
 var _user$project$View$placeholderView = function (maybe) {

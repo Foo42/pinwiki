@@ -66,7 +66,11 @@ itemView item =
       , onWithOptions "click" {stopPropagation = True, preventDefault = True} (Json.succeed (BeginEdit item.uid))
     ]
     [
-      text item.definition
+      text item.definition,
+      div [
+        class "item-control delete-item-control"
+        ]
+        [text "delete"]
     ]
 
 itemClasses : Item -> String

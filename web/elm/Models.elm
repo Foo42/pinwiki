@@ -12,7 +12,8 @@ type alias Item = {
   definition : String,
   position : Position,
   uid : Int,
-  isEditing : Bool
+  isEditing : Bool,
+  isSelected: Bool
 }
 
 type alias Position = {
